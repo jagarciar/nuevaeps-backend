@@ -320,26 +320,105 @@ Signature: HMACSHA384(header + payload, secret)
 
 ## 💾 Base de Datos
 
-### Tablas
+La base de datos se crea automáticamente al iniciar la aplicación mediante el script [init-db.sql](../init-db.sql) que se ejecuta en PostgreSQL.
 
-#### usuarios
+### Diagrama de Relaciones
+
+```
+┌──────────────────────────────┐
+│       USUARIOS               │
+├──────────────────────────────┤
+│ id (PK) BIGSERIAL            │
+│ username VARCHAR(255) UNIQUE │
+│ password VARCHAR(255)        │
+└──────────────────────────────┘
+         ▲
+         │
+         │ (1:N)
+         │
+┌──────────────────────────────────────────────────┐
+│     SOLICITUDES_MEDICAMENTOS                     │
+├──────────────────────────────────────────────────┤
+│ id (PK) BIGSERIAL                                │
+│ usuario_id (FK) ───────────┬─ USUARIOS.id        │
+│ medicamento_id (FK) ───────┤                     │
+│ numero_orden VARCHAR(255)   │                     │
+│ direccion VARCHAR(500)      │                     │
+│ telefono VARCHAR(20)        │                     │
+│ correo_electronico VARCHAR  │                     │
+│                             │                     │
+│          (1:N)              │                     │
+└──────────────────────────────────────────────────┘
+                              │
+                              │
+         ┌────────────────────┘
+         │
+         ▼
+┌──────────────────────────────┐
+│    MEDICAMENTOS              │
+├──────────────────────────────┤
+│ id (PK) BIGSERIAL            │
+│ nombre VARCHAR(255) NOT NULL │
+└──────────────────────────────┘
+```
+
+### Tablas Detalladas
+
+#### USUARIOS
+Almacena credenciales de usuarios del sistema.
+
 ```sql
 CREATE TABLE usuarios (
   id BIGSERIAL PRIMARY KEY,
   username VARCHAR(255) NOT NULL UNIQUE,
   password VARCHAR(255) NOT NULL
 );
+
+-- Índice para búsquedas rápidas
+CREATE INDEX idx_usuarios_username ON usuarios(username);
 ```
 
-#### medicamentos
+| Campo | Tipo | Restricciones | Descripción |
+|-------|------|---|---|
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único |
+| `username` | VARCHAR(255) | NOT NULL, UNIQUE | Nombre de usuario para login |
+| `password` | VARCHAR(255) | NOT NULL | Contraseña hasheada con bcrypt |
+
+**Usuarios de Prueba:**
+- Username: `admin` | Password: `admin`
+- Username: `usuario_test` | Password: `admin`
+
+---
+
+#### MEDICAMENTOS
+Catálogo de medicamentos disponibles (solo lectura desde el frontend).
+
 ```sql
 CREATE TABLE medicamentos (
   id BIGSERIAL PRIMARY KEY,
   nombre VARCHAR(255) NOT NULL
 );
+
+-- Índice para búsquedas por nombre
+CREATE INDEX idx_medicamentos_nombre ON medicamentos(nombre);
 ```
 
-#### solicitudes_medicamentos
+| Campo | Tipo | Restricciones | Descripción |
+|-------|------|---|---|
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único |
+| `nombre` | VARCHAR(255) | NOT NULL | Nombre del medicamento |
+
+**Medicamentos Iniciales:**
+- Paracetamol
+- Ibuprofeno
+- Amoxicilina
+- Metformina
+
+---
+
+#### SOLICITUDES_MEDICAMENTOS
+Registro de solicitudes realizadas por usuarios para medicamentos.
+
 ```sql
 CREATE TABLE solicitudes_medicamentos (
   id BIGSERIAL PRIMARY KEY,
@@ -349,17 +428,74 @@ CREATE TABLE solicitudes_medicamentos (
   direccion VARCHAR(500) NOT NULL,
   telefono VARCHAR(20) NOT NULL,
   correo_electronico VARCHAR(255) NOT NULL,
-  FOREIGN KEY (medicamento_id) REFERENCES medicamentos(id) ON DELETE CASCADE,
-  FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+  CONSTRAINT fk_solicitud_medicamento 
+    FOREIGN KEY (medicamento_id) REFERENCES medicamentos(id) ON DELETE CASCADE,
+  CONSTRAINT fk_solicitud_usuario 
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
 );
+
+-- Índices para búsquedas rápidas
+CREATE INDEX idx_solicitudes_medicamento ON solicitudes_medicamentos(medicamento_id);
+CREATE INDEX idx_solicitudes_usuario ON solicitudes_medicamentos(usuario_id);
+CREATE INDEX idx_solicitudes_numero_orden ON solicitudes_medicamentos(numero_orden);
 ```
+
+| Campo | Tipo | Restricciones | Descripción |
+|-------|------|---|---|
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único |
+| `medicamento_id` | BIGINT | NOT NULL, FK | Referencia a medicamento |
+| `usuario_id` | BIGINT | NOT NULL, FK | Referencia a usuario |
+| `numero_orden` | VARCHAR(255) | NOT NULL, UNIQUE | Número de solicitud único |
+| `direccion` | VARCHAR(500) | NOT NULL | Dirección de entrega |
+| `telefono` | VARCHAR(20) | NOT NULL | Teléfono de contacto |
+| `correo_electronico` | VARCHAR(255) | NOT NULL | Email de contacto |
+
+**Relaciones:**
+- FK (medicamento_id) → medicamentos(id) ON DELETE CASCADE
+- FK (usuario_id) → usuarios(id) ON DELETE CASCADE
+
+---
 
 ### Usuarios de Prueba
 
-| Username | Contraseña |
-|----------|-----------|
-| admin | admin |
-| usuario_test | admin |
+| Username | Contraseña | Descripción |
+|----------|-----------|---|
+| admin | admin | Usuario administrador |
+| usuario_test | admin | Usuario de prueba |
+
+---
+
+### Medicamentos Disponibles
+
+| ID | Nombre |
+|----|--------|
+| 1 | Paracetamol |
+| 2 | Ibuprofeno |
+| 3 | Amoxicilina |
+| 4 | Metformina |
+
+---
+
+### Conexión a Base de Datos
+
+**Desde la aplicación:**
+```properties
+spring.datasource.url=jdbc:postgresql://postgres:5432/nuevaeps_db
+spring.datasource.username=postgres
+spring.datasource.password=postgres
+```
+
+**Desde el host (psql):**
+```bash
+psql -h localhost -U postgres -d nuevaeps_db
+```
+
+**Credenciales PostgreSQL:**
+- Host: `postgres` (contenedor) o `localhost` (host)
+- Puerto: 5432
+- Usuario: postgres
+- Contraseña: postgres
+- Base de datos: nuevaeps_db
 
 ---
 
