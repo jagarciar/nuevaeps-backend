@@ -467,7 +467,3 @@ docker-compose up -d backend
 - Confirmar que la BD `nuevaeps_db` existe
 
 ---
-
-## 📞 Contacto & Soporte
-
-Para reportar bugs o sugerencias, contactar al equipo de desarrollo.
