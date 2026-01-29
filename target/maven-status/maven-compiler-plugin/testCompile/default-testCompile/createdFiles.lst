@@ -1,0 +1,4 @@
+com\nuevaeps\api\controller\AuthControllerTest.class
+com\nuevaeps\api\NuevaepsApiApplicationTests.class
+com\nuevaeps\api\controller\MedicamentoControllerTest.class
+com\nuevaeps\api\controller\SolicitudMedicamentoControllerTest.class
