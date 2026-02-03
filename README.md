@@ -34,14 +34,6 @@ cd nuevaeps-backend
 mvn clean install
 ```
 
-### Ejecutar Localmente
-
-```bash
-mvn spring-boot:run
-```
-
-La aplicación estará disponible en: `http://localhost:8080`
-
 ### Ejecutar con Docker
 
 ```bash
@@ -688,7 +680,112 @@ docker-compose up -d backend
 
 ---
 
-## 🚨 Troubleshooting
+## � Logging
+
+La aplicación está configurada para registrar eventos en consola y archivo para facilitar el debugging y monitoreo.
+
+### Configuración
+
+```properties
+# Nivel de logs
+logging.level.root=INFO
+logging.level.com.nuevaeps.api=DEBUG
+
+# Archivo de logs
+logging.file.name=/app/logs/nuevaeps-backend.log
+logging.file.path=/app/logs
+
+# Rotación de archivos
+logging.logback.rollingpolicy.max-file-size=10MB
+logging.logback.rollingpolicy.max-history=30
+logging.logback.rollingpolicy.total-size-cap=1GB
+
+# Formato
+logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} - %msg%n
+logging.pattern.file=%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
+```
+
+### Niveles de Log
+
+| Nivel | Descripción | Cuándo se usa |
+|-------|-------------|---|
+| DEBUG | Información detallada para debugging | Desarrollo, clases de la aplicación (com.nuevaeps.api) |
+| INFO | Mensajes informativos generales | Eventos importantes de la aplicación |
+| WARN | Advertencias, posibles problemas | Situaciones inusuales pero recuperables |
+| ERROR | Errores en la aplicación | Fallos que requieren atención |
+| FATAL | Errores críticos del sistema | Fallos que detienen la aplicación |
+
+### Ver Logs
+
+
+#### En Archivo (Docker)
+
+```bash
+# Ver el archivo de logs del contenedor
+docker exec nuevaeps_postgres cat /app/logs/nuevaeps-backend.log
+
+# Ver últimas 50 líneas
+docker exec nuevaeps_postgres tail -50 /app/logs/nuevaeps-backend.log
+
+# Ver logs en tiempo real
+docker exec nuevaeps_postgres tail -f /app/logs/nuevaeps-backend.log
+```
+
+#### Logs de Docker
+
+```bash
+# Ver logs del contenedor
+docker logs nuevaeps_postgres
+
+# Ver últimas 50 líneas
+docker logs --tail 50 nuevaeps_postgres
+
+# Ver logs en tiempo real
+docker logs -f nuevaeps_postgres
+```
+
+### Cambiar Nivel de Log
+
+Para cambiar el nivel de logs en tiempo de ejecución, modifica el archivo `application.properties`:
+
+```properties
+# Para ver más detalles del framework Spring
+logging.level.org.springframework=DEBUG
+
+# Para ver detalles de Hibernate/JPA
+logging.level.org.hibernate=DEBUG
+
+# Para silenciar paquetes específicos
+logging.level.org.springframework.security=WARN
+```
+
+### Patrones de Búsqueda
+
+#### Buscar errores
+
+```bash
+docker logs nuevaeps_postgres | grep -i "error"
+```
+
+#### Buscar advertencias
+
+```bash
+docker logs nuevaeps_postgres | grep -i "warn"
+```
+
+#### Buscar por timestamp
+
+```bash
+docker logs nuevaeps_postgres | grep "2026-02-03"
+```
+
+#### Buscar requests HTTP
+
+```bash
+docker logs nuevaeps_postgres | grep "POST\|GET\|PUT\|DELETE"
+```
+
+---
 
 ### Error: "Credenciales inválidas"
 - Verificar que el usuario existe en BD
