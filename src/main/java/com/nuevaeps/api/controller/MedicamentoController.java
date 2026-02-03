@@ -1,6 +1,7 @@
 package com.nuevaeps.api.controller;
 
 import com.nuevaeps.api.model.Medicamento;
+import com.nuevaeps.api.model.SolicitudMedicamento;
 import com.nuevaeps.api.service.MedicamentoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -59,4 +60,35 @@ public class MedicamentoController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Crear nuevo medicamento", description = "Crea un nuevo medicamento")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Medicamento creado exitosamente",
+                    content = @Content(schema = @Schema(implementation = Medicamento.class))),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos")
+    })
+    public ResponseEntity<Medicamento> crearMedicamento(@RequestBody Medicamento medicamento) {
+        Medicamento medicamentoCreado = medicamentoService.crearMedicamento(medicamento);
+        return ResponseEntity.status(HttpStatus.CREATED).body(medicamentoCreado);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Actualizar medicamento", description = "Actualiza un medicamento existente por su ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Medicamento actualizado exitosamente",
+                    content = @Content(schema = @Schema(implementation = Medicamento.class))),
+            @ApiResponse(responseCode = "404", description = "Medicamento no encontrado"),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos")
+    })
+    public ResponseEntity<Medicamento> actualizarMedicamento(@PathVariable Long id, @RequestBody Medicamento medicamento) {
+        Medicamento medicamentoActualizado = medicamentoService.actualizarMedicamento(id, medicamento);
+        if (medicamentoActualizado != null) {
+            return ResponseEntity.ok(medicamentoActualizado);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
 }

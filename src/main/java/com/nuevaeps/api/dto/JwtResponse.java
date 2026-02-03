@@ -1,15 +1,19 @@
 package com.nuevaeps.api.dto;
 
+import java.util.List;
+
 public class JwtResponse {
     private String token;
     private String type = "Bearer";
     private Long id;
     private String username;
+    private List<String> roles;
 
-    public JwtResponse(String token, Long id, String username) {
+    public JwtResponse(String token, Long id, String username, List<String> roles) {
         this.token = token;
         this.id = id;
         this.username = username;
+        this.roles = roles;
     }
 
     public String getAccessToken() {
@@ -42,5 +46,13 @@ public class JwtResponse {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public List<String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
     }
 }

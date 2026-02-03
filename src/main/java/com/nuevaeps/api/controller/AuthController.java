@@ -14,7 +14,11 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -45,7 +49,11 @@ public class AuthController {
             Usuario usuario = usuarioService.obtenerPorUsername(loginRequest.getUsername()).orElse(null);
 
             if (usuario != null) {
-                return ResponseEntity.ok(new JwtResponse(jwt, usuario.getId(), usuario.getUsername()));
+                List<String> roles = authentication.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .collect(Collectors.toList());
+                        
+                return ResponseEntity.ok(new JwtResponse(jwt, usuario.getId(), usuario.getUsername(), roles));
             }
             return ResponseEntity.badRequest().body("Usuario no encontrado");
         } catch (AuthenticationException e) {

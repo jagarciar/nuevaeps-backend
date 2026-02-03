@@ -162,13 +162,57 @@ Content-Type: application/json
 }
 ```
 
-### Medicamentos (Solo Lectura)
+#### Ejemplo Crear Medicamento (ADMIN)
+
+**Request:**
+```bash
+POST /api/v1/medicamentos
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "nombre": "Loratadina"
+}
+```
+
+**Response:**
+```json
+{
+  "id": 5,
+  "nombre": "Loratadina"
+}
+```
+
+#### Ejemplo Actualizar Medicamento (ADMIN)
+
+**Request:**
+```bash
+PUT /api/v1/medicamentos/5
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "nombre": "Loratadina 10mg"
+}
+```
+
+**Response:**
+```json
+{
+  "id": 5,
+  "nombre": "Loratadina 10mg"
+}
+```
+
+### Medicamentos
 
 | Método | Endpoint | Descripción | Autenticación |
 |--------|----------|-------------|---|
 | GET | `/api/v1/medicamentos` | Obtener todos | ✅ |
 | GET | `/api/v1/medicamentos/{id}` | Obtener por ID | ✅ |
 | GET | `/api/v1/medicamentos/paginated` | Obtener paginado | ✅ |
+| POST | `/api/v1/medicamentos` | Crear medicamento | ✅ ADMIN |
+| PUT | `/api/v1/medicamentos/{id}` | Actualizar medicamento | ✅ ADMIN |
 
 ### Solicitudes de Medicamentos
 
