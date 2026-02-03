@@ -137,3 +137,13 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Maven
+target/
+.classpath
+.project
+.settings/
+.idea/
+*.iml
+*.class
+.DS_Store

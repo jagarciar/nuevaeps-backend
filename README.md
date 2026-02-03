@@ -370,6 +370,16 @@ La base de datos se crea automáticamente al iniciar la aplicación mediante el 
 
 ```
 ┌──────────────────────────────┐
+│         ROLES                │
+├──────────────────────────────┤
+│ id (PK) BIGSERIAL            │
+│ nombre VARCHAR(50) UNIQUE    │
+└──────────────────────────────┘
+         ▲
+         │
+         │ (N:N)
+         │
+┌──────────────────────────────┐
 │       USUARIOS               │
 ├──────────────────────────────┤
 │ id (PK) BIGSERIAL            │
@@ -434,7 +444,54 @@ CREATE INDEX idx_usuarios_username ON usuarios(username);
 
 ---
 
-#### MEDICAMENTOS
+#### ROLES
+Catálogo de roles del sistema para control de acceso.
+
+```sql
+CREATE TABLE roles (
+  id BIGSERIAL PRIMARY KEY,
+  nombre VARCHAR(50) NOT NULL UNIQUE
+);
+```
+
+| Campo | Tipo | Restricciones | Descripción |
+|-------|------|---|---|
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único |
+| `nombre` | VARCHAR(50) | NOT NULL, UNIQUE | Nombre del rol (USER, ADMIN, MODERATOR) |
+
+**Roles Disponibles:**
+- `USER` - Usuario estándar, puede crear solicitudes
+- `ADMIN` - Administrador, puede crear y actualizar medicamentos
+- `MODERATOR` - Moderador, puede revisar solicitudes
+
+---
+
+#### USUARIOS_ROLES
+Tabla intermedia para la relación Many-to-Many entre usuarios y roles.
+
+```sql
+CREATE TABLE usuarios_roles (
+  usuario_id BIGINT NOT NULL,
+  rol_id BIGINT NOT NULL,
+  PRIMARY KEY (usuario_id, rol_id),
+  CONSTRAINT fk_usuarios_roles_usuario 
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+  CONSTRAINT fk_usuarios_roles_rol 
+    FOREIGN KEY (rol_id) REFERENCES roles(id) ON DELETE CASCADE
+);
+```
+
+| Campo | Tipo | Restricciones | Descripción |
+|-------|------|---|---|
+| `usuario_id` | BIGINT | NOT NULL, FK | Referencia a usuario |
+| `rol_id` | BIGINT | NOT NULL, FK | Referencia a rol |
+| (usuario_id, rol_id) | Composite | PRIMARY KEY | Identifica la asignación de rol |
+
+**Relaciones:**
+- FK (usuario_id) → usuarios(id) ON DELETE CASCADE
+- FK (rol_id) → roles(id) ON DELETE CASCADE
+
+---
 Catálogo de medicamentos disponibles (solo lectura desde el frontend).
 
 ```sql
@@ -502,10 +559,12 @@ CREATE INDEX idx_solicitudes_numero_orden ON solicitudes_medicamentos(numero_ord
 
 ### Usuarios de Prueba
 
-| Username | Contraseña | Descripción |
-|----------|-----------|---|
-| admin | admin | Usuario administrador |
-| usuario_test | admin | Usuario de prueba |
+| Username | Contraseña | Roles | Descripción |
+|----------|-----------|-------|---|
+| admin | admin | ADMIN, USER | Administrador con permisos completos |
+| usuario_test | admin | USER | Usuario estándar para pruebas |
+
+**Nota:** Las contraseñas están hasheadas con bcrypt en la BD. El hash `$2a$10$dXJ3SW6G7P50eS4XW0JUXOUm8i8FGOy8sAWw3R.6yVl0vVnvVvI3y` corresponde a la contraseña "admin".
 
 ---
 
